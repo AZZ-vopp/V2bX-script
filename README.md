@@ -70,9 +70,9 @@
 ## ⚡ Cài Đặt Nhanh
 
 ### 🎯 **Cài Đặt Một Lệnh**
+# Cài đặt V2bX với script tiếng Việt
 
 ```bash
-# Cài đặt V2bX với script tiếng Việt
 wget -N https://raw.githubusercontent.com/AZZ-vopp/V2bX-script/master/install.sh && bash install.sh
 ```
 
