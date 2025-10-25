@@ -95,7 +95,7 @@ before_show_menu() {
 }
 
 install() {
-    bash <(curl -Ls https://raw.githubusercontent.com/wyx2685/V2bX-script/master/install.sh)
+    bash <(curl -Ls https://raw.githubusercontent.com/AZZ-vopp/V2bX-script/master/install.sh)
     if [[ $? == 0 ]]; then
         if [[ $# == 0 ]]; then
             start
@@ -111,7 +111,7 @@ update() {
     else
         version=$2
     fi
-    bash <(curl -Ls https://raw.githubusercontent.com/wyx2685/V2bX-script/master/install.sh) $version
+    bash <(curl -Ls https://raw.githubusercontent.com/AZZ-vopp/V2bX-script/master/install.sh) $version
     if [[ $? == 0 ]]; then
         echo -e "${green}Cập nhật hoàn tất, V2bX đã được tự động khởi động lại, vui lòng dùng V2bX log để xem nhật ký hoạt động${plain}"
         exit
@@ -299,7 +299,7 @@ install_bbr() {
 }
 
 update_shell() {
-    wget -O /usr/bin/V2bX -N --no-check-certificate https://raw.githubusercontent.com/wyx2685/V2bX-script/master/V2bX.sh
+    wget -O /usr/bin/V2bX -N --no-check-certificate https://raw.githubusercontent.com/AZZ-vopp/V2bX-script/master/V2bX.sh
     if [[ $? != 0 ]]; then
         echo ""
         echo -e "${red}Tải script thất bại, kiểm tra kết nối Github${plain}"
