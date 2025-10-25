@@ -7,10 +7,10 @@ plain='\033[0m'
 
 cur_dir=$(pwd)
 
-# check root
-[[ $EUID -ne 0 ]] && echo -e "${red}错误：${plain} 必须使用root用户运行此脚本！\n" && exit 1
+# kiểm tra root
+[[ $EUID -ne 0 ]] && echo -e "${red}Lỗi:${plain} Bạn phải chạy script này bằng tài khoản root!\n" && exit 1
 
-# check os
+# kiểm tra hệ điều hành
 if [[ -f /etc/redhat-release ]]; then
     release="centos"
 elif cat /etc/issue | grep -Eqi "alpine"; then
@@ -30,7 +30,7 @@ elif cat /proc/version | grep -Eqi "centos|red hat|redhat|rocky|alma|oracle linu
 elif cat /proc/version | grep -Eqi "arch"; then
     release="arch"
 else
-    echo -e "${red}未检测到系统版本，请联系脚本作者！${plain}\n" && exit 1
+    echo -e "${red}Không phát hiện được hệ điều hành, vui lòng liên hệ tác giả script!${plain}\n" && exit 1
 fi
 
 arch=$(uname -m)
@@ -43,17 +43,17 @@ elif [[ $arch == "s390x" ]]; then
     arch="s390x"
 else
     arch="64"
-    echo -e "${red}检测架构失败，使用默认架构: ${arch}${plain}"
+    echo -e "${red}Không xác định được kiến trúc, sử dụng mặc định: ${arch}${plain}"
 fi
 
-echo "架构: ${arch}"
+echo "Kiến trúc: ${arch}"
 
 if [ "$(getconf WORD_BIT)" != '32' ] && [ "$(getconf LONG_BIT)" != '64' ] ; then
-    echo "本软件不支持 32 位系统(x86)，请使用 64 位系统(x86_64)，如果检测有误，请联系作者"
+    echo "Phần mềm này không hỗ trợ hệ thống 32 bit (x86), vui lòng dùng hệ thống 64 bit (x86_64), nếu phát hiện nhầm, vui lòng liên hệ tác giả."
     exit 2
 fi
 
-# os version
+# phiên bản hệ điều hành
 if [[ -f /etc/os-release ]]; then
     os_version=$(awk -F'[= ."]' '/VERSION_ID/{print $3}' /etc/os-release)
 fi
@@ -63,18 +63,18 @@ fi
 
 if [[ x"${release}" == x"centos" ]]; then
     if [[ ${os_version} -le 6 ]]; then
-        echo -e "${red}请使用 CentOS 7 或更高版本的系统！${plain}\n" && exit 1
+        echo -e "${red}Vui lòng sử dụng CentOS 7 hoặc cao hơn!${plain}\n" && exit 1
     fi
     if [[ ${os_version} -eq 7 ]]; then
-        echo -e "${red}注意： CentOS 7 无法使用hysteria1/2协议！${plain}\n"
+        echo -e "${red}Lưu ý: CentOS 7 không thể sử dụng giao thức hysteria1/2!${plain}\n"
     fi
 elif [[ x"${release}" == x"ubuntu" ]]; then
     if [[ ${os_version} -lt 16 ]]; then
-        echo -e "${red}请使用 Ubuntu 16 或更高版本的系统！${plain}\n" && exit 1
+        echo -e "${red}Vui lòng sử dụng Ubuntu 16 hoặc cao hơn!${plain}\n" && exit 1
     fi
 elif [[ x"${release}" == x"debian" ]]; then
     if [[ ${os_version} -lt 8 ]]; then
-        echo -e "${red}请使用 Debian 8 或更高版本的系统！${plain}\n" && exit 1
+        echo -e "${red}Vui lòng sử dụng Debian 8 hoặc cao hơn!${plain}\n" && exit 1
     fi
 fi
 
@@ -101,7 +101,7 @@ install_base() {
     fi
 }
 
-# 0: running, 1: not running, 2: not installed
+# 0: đang chạy, 1: không chạy, 2: chưa cài đặt
 check_status() {
     if [[ ! -f /usr/local/V2bX/V2bX ]]; then
         return 2
@@ -134,22 +134,22 @@ install_V2bX() {
     if  [ $# == 0 ] ;then
         last_version=$(curl -Ls "https://api.github.com/repos/wyx2685/V2bX/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
         if [[ ! -n "$last_version" ]]; then
-            echo -e "${red}检测 V2bX 版本失败，可能是超出 Github API 限制，请稍后再试，或手动指定 V2bX 版本安装${plain}"
+            echo -e "${red}Không lấy được phiên bản V2bX mới nhất, có thể bị giới hạn bởi Github API, vui lòng thử lại sau hoặc tự chỉ định phiên bản cần cài!${plain}"
             exit 1
         fi
-        echo -e "检测到 V2bX 最新版本：${last_version}，开始安装"
+        echo -e "Phát hiện phiên bản V2bX mới nhất: ${last_version}, bắt đầu cài đặt"
         wget --no-check-certificate -N --progress=bar -O /usr/local/V2bX/V2bX-linux.zip https://github.com/wyx2685/V2bX/releases/download/${last_version}/V2bX-linux-${arch}.zip
         if [[ $? -ne 0 ]]; then
-            echo -e "${red}下载 V2bX 失败，请确保你的服务器能够下载 Github 的文件${plain}"
+            echo -e "${red}Tải V2bX thất bại, hãy chắc chắn server của bạn tải được file từ Github${plain}"
             exit 1
         fi
     else
         last_version=$1
         url="https://github.com/wyx2685/V2bX/releases/download/${last_version}/V2bX-linux-${arch}.zip"
-        echo -e "开始安装 V2bX $1"
+        echo -e "Bắt đầu cài đặt V2bX $1"
         wget --no-check-certificate -N --progress=bar -O /usr/local/V2bX/V2bX-linux.zip ${url}
         if [[ $? -ne 0 ]]; then
-            echo -e "${red}下载 V2bX $1 失败，请确保此版本存在${plain}"
+            echo -e "${red}Tải V2bX $1 thất bại, hãy chắc chắn phiên bản này tồn tại${plain}"
             exit 1
         fi
     fi
@@ -181,7 +181,7 @@ depend() {
 EOF
         chmod +x /etc/init.d/V2bX
         rc-update add V2bX default
-        echo -e "${green}V2bX ${last_version}${plain} 安装完成，已设置开机自启"
+        echo -e "${green}V2bX ${last_version}${plain} đã cài đặt xong, đã thiết lập tự khởi động cùng hệ thống"
     else
         rm /etc/systemd/system/V2bX.service -f
         cat <<EOF > /etc/systemd/system/V2bX.service
@@ -209,13 +209,13 @@ EOF
         systemctl daemon-reload
         systemctl stop V2bX
         systemctl enable V2bX
-        echo -e "${green}V2bX ${last_version}${plain} 安装完成，已设置开机自启"
+        echo -e "${green}V2bX ${last_version}${plain} đã cài đặt xong, đã thiết lập tự khởi động cùng hệ thống"
     fi
 
     if [[ ! -f /etc/V2bX/config.json ]]; then
         cp config.json /etc/V2bX/
         echo -e ""
-        echo -e "全新安装，请先参看教程：https://v2bx.v-50.me/，配置必要的内容"
+        echo -e "Cài đặt mới, vui lòng đọc hướng dẫn: https://v2bx.v-50.me/ để cấu hình các thông số cần thiết"
         first_install=true
     else
         if [[ x"${release}" == x"alpine" ]]; then
@@ -227,9 +227,9 @@ EOF
         check_status
         echo -e ""
         if [[ $? == 0 ]]; then
-            echo -e "${green}V2bX 重启成功${plain}"
+            echo -e "${green}Khởi động lại V2bX thành công${plain}"
         else
-            echo -e "${red}V2bX 可能启动失败，请稍后使用 V2bX log 查看日志信息，若无法启动，则可能更改了配置格式，请前往 wiki 查看：https://github.com/V2bX-project/V2bX/wiki${plain}"
+            echo -e "${red}V2bX có thể đã khởi động thất bại, hãy kiểm tra log bằng V2bX log, nếu không khởi động được có thể đã thay đổi cấu hình, xem wiki: https://github.com/V2bX-project/V2bX/wiki${plain}"
         fi
         first_install=false
     fi
@@ -255,27 +255,27 @@ EOF
     cd $cur_dir
     rm -f install.sh
     echo -e ""
-    echo "V2bX 管理脚本使用方法 (兼容使用V2bX执行，大小写不敏感): "
+    echo "Cách sử dụng script quản lý V2bX (có thể dùng V2bX hoặc v2bx, không phân biệt hoa thường):"
     echo "------------------------------------------"
-    echo "V2bX              - 显示管理菜单 (功能更多)"
-    echo "V2bX start        - 启动 V2bX"
-    echo "V2bX stop         - 停止 V2bX"
-    echo "V2bX restart      - 重启 V2bX"
-    echo "V2bX status       - 查看 V2bX 状态"
-    echo "V2bX enable       - 设置 V2bX 开机自启"
-    echo "V2bX disable      - 取消 V2bX 开机自启"
-    echo "V2bX log          - 查看 V2bX 日志"
-    echo "V2bX x25519       - 生成 x25519 密钥"
-    echo "V2bX generate     - 生成 V2bX 配置文件"
-    echo "V2bX update       - 更新 V2bX"
-    echo "V2bX update x.x.x - 更新 V2bX 指定版本"
-    echo "V2bX install      - 安装 V2bX"
-    echo "V2bX uninstall    - 卸载 V2bX"
-    echo "V2bX version      - 查看 V2bX 版本"
+    echo "V2bX              - Hiển thị menu quản lý (nhiều chức năng hơn)"
+    echo "V2bX start        - Khởi động V2bX"
+    echo "V2bX stop         - Dừng V2bX"
+    echo "V2bX restart      - Khởi động lại V2bX"
+    echo "V2bX status       - Kiểm tra trạng thái V2bX"
+    echo "V2bX enable       - Thiết lập tự khởi động V2bX"
+    echo "V2bX disable      - Tắt tự khởi động V2bX"
+    echo "V2bX log          - Xem log V2bX"
+    echo "V2bX x25519       - Tạo khoá x25519"
+    echo "V2bX generate     - Tạo file cấu hình V2bX"
+    echo "V2bX update       - Cập nhật V2bX"
+    echo "V2bX update x.x.x - Cập nhật V2bX theo phiên bản chỉ định"
+    echo "V2bX install      - Cài đặt V2bX"
+    echo "V2bX uninstall    - Gỡ cài đặt V2bX"
+    echo "V2bX version      - Xem phiên bản V2bX"
     echo "------------------------------------------"
-    # 首次安装询问是否生成配置文件
+    # Lần đầu cài đặt, hỏi có muốn tạo file cấu hình không
     if [[ $first_install == true ]]; then
-        read -rp "检测到你为第一次安装V2bX,是否自动直接生成配置文件？(y/n): " if_generate
+        read -rp "Phát hiện lần đầu cài đặt V2bX, bạn có muốn tự động tạo file cấu hình không? (y/n): " if_generate
         if [[ $if_generate == [Yy] ]]; then
             curl -o ./initconfig.sh -Ls https://raw.githubusercontent.com/wyx2685/V2bX-script/master/initconfig.sh
             source initconfig.sh
@@ -285,6 +285,6 @@ EOF
     fi
 }
 
-echo -e "${green}开始安装${plain}"
+echo -e "${green}Bắt đầu cài đặt${plain}"
 install_base
 install_V2bX $1
