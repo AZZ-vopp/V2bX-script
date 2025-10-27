@@ -200,7 +200,7 @@ LimitCORE=infinity
 LimitNOFILE=999999
 WorkingDirectory=/usr/local/V2bX/
 ExecStart=/usr/local/V2bX/V2bX server
-Restart=always
+Restart=on-failure
 RestartSec=10
 
 [Install]
