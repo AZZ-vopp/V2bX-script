@@ -7,10 +7,10 @@ plain='\033[0m'
 
 cur_dir=$(pwd)
 
-# kiểm tra root
-[[ $EUID -ne 0 ]] && echo -e "${red}Lỗi:${plain} Bạn phải chạy script này bằng tài khoản root!\n" && exit 1
+# check root
+[[ $EUID -ne 0 ]] && echo -e "${red}Lỗi:${plain} Phải chạy script này bằng quyền root!\n" && exit 1
 
-# kiểm tra hệ điều hành
+# check os
 if [[ -f /etc/redhat-release ]]; then
     release="centos"
 elif cat /etc/issue | grep -Eqi "alpine"; then
@@ -30,7 +30,7 @@ elif cat /proc/version | grep -Eqi "centos|red hat|redhat|rocky|alma|oracle linu
 elif cat /proc/version | grep -Eqi "arch"; then
     release="arch"
 else
-    echo -e "${red}Không phát hiện được hệ điều hành, vui lòng liên hệ tác giả script!${plain}\n" && exit 1
+    echo -e "${red}Không phát hiện được phiên bản hệ thống, vui lòng liên hệ tác giả!${plain}\n" && exit 1
 fi
 
 arch=$(uname -m)
@@ -43,17 +43,17 @@ elif [[ $arch == "s390x" ]]; then
     arch="s390x"
 else
     arch="64"
-    echo -e "${red}Không xác định được kiến trúc, sử dụng mặc định: ${arch}${plain}"
+    echo -e "${red}Phát hiện kiến trúc thất bại, sử dụng kiến trúc mặc định: ${arch}${plain}"
 fi
 
 echo "Kiến trúc: ${arch}"
 
 if [ "$(getconf WORD_BIT)" != '32' ] && [ "$(getconf LONG_BIT)" != '64' ] ; then
-    echo "Phần mềm này không hỗ trợ hệ thống 32 bit (x86), vui lòng dùng hệ thống 64 bit (x86_64), nếu phát hiện nhầm, vui lòng liên hệ tác giả."
+    echo "Phần mềm này không hỗ trợ hệ thống 32-bit (x86), vui lòng sử dụng hệ thống 64-bit (x86_64). Nếu phát hiện sai, vui lòng liên hệ tác giả."
     exit 2
 fi
 
-# phiên bản hệ điều hành
+# os version
 if [[ -f /etc/os-release ]]; then
     os_version=$(awk -F'[= ."]' '/VERSION_ID/{print $3}' /etc/os-release)
 fi
@@ -101,7 +101,7 @@ install_base() {
     fi
 }
 
-# 0: đang chạy, 1: không chạy, 2: chưa cài đặt
+# 0: running, 1: not running, 2: not installed
 check_status() {
     if [[ ! -f /usr/local/V2bX/V2bX ]]; then
         return 2
@@ -134,13 +134,13 @@ install_V2bX() {
     if  [ $# == 0 ] ;then
         last_version=$(curl -Ls "https://api.github.com/repos/wyx2685/V2bX/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
         if [[ ! -n "$last_version" ]]; then
-            echo -e "${red}Không lấy được phiên bản V2bX mới nhất, có thể bị giới hạn bởi Github API, vui lòng thử lại sau hoặc tự chỉ định phiên bản cần cài!${plain}"
+            echo -e "${red}Kiểm tra phiên bản V2bX thất bại, có thể do giới hạn API Github, vui lòng thử lại sau hoặc chỉ định phiên bản V2bX thủ công${plain}"
             exit 1
         fi
-        echo -e "Phát hiện phiên bản V2bX mới nhất: ${last_version}, bắt đầu cài đặt"
+        echo -e "Đã phát hiện phiên bản V2bX mới nhất: ${last_version}, bắt đầu cài đặt"
         wget --no-check-certificate -N --progress=bar -O /usr/local/V2bX/V2bX-linux.zip https://github.com/wyx2685/V2bX/releases/download/${last_version}/V2bX-linux-${arch}.zip
         if [[ $? -ne 0 ]]; then
-            echo -e "${red}Tải V2bX thất bại, hãy chắc chắn server của bạn tải được file từ Github${plain}"
+            echo -e "${red}Tải V2bX thất bại, vui lòng đảm bảo server của bạn có thể tải file từ Github${plain}"
             exit 1
         fi
     else
@@ -149,7 +149,7 @@ install_V2bX() {
         echo -e "Bắt đầu cài đặt V2bX $1"
         wget --no-check-certificate -N --progress=bar -O /usr/local/V2bX/V2bX-linux.zip ${url}
         if [[ $? -ne 0 ]]; then
-            echo -e "${red}Tải V2bX $1 thất bại, hãy chắc chắn phiên bản này tồn tại${plain}"
+            echo -e "${red}Tải V2bX $1 thất bại, vui lòng đảm bảo phiên bản này tồn tại${plain}"
             exit 1
         fi
     fi
@@ -181,7 +181,7 @@ depend() {
 EOF
         chmod +x /etc/init.d/V2bX
         rc-update add V2bX default
-        echo -e "${green}V2bX ${last_version}${plain} đã cài đặt xong, đã thiết lập tự khởi động cùng hệ thống"
+        echo -e "${green}V2bX ${last_version}${plain} Cài đặt hoàn tất, đã thiết lập tự khởi động"
     else
         rm /etc/systemd/system/V2bX.service -f
         cat <<EOF > /etc/systemd/system/V2bX.service
@@ -200,7 +200,7 @@ LimitCORE=infinity
 LimitNOFILE=999999
 WorkingDirectory=/usr/local/V2bX/
 ExecStart=/usr/local/V2bX/V2bX server
-Restart=on-failure
+Restart=always
 RestartSec=10
 
 [Install]
@@ -209,13 +209,13 @@ EOF
         systemctl daemon-reload
         systemctl stop V2bX
         systemctl enable V2bX
-        echo -e "${green}V2bX ${last_version}${plain} đã cài đặt xong, đã thiết lập tự khởi động cùng hệ thống"
+        echo -e "${green}V2bX ${last_version}${plain} Cài đặt hoàn tất, đã thiết lập tự khởi động"
     fi
 
     if [[ ! -f /etc/V2bX/config.json ]]; then
         cp config.json /etc/V2bX/
         echo -e ""
-        echo -e "Cài đặt mới, vui lòng đọc hướng dẫn: https://v2bx.v-50.me/ để cấu hình các thông số cần thiết"
+        echo -e "Cài đặt mới, vui lòng tham khảo hướng dẫn trước: https://v2bx.v-50.me/ để cấu hình các nội dung cần thiết"
         first_install=true
     else
         if [[ x"${release}" == x"alpine" ]]; then
@@ -227,9 +227,9 @@ EOF
         check_status
         echo -e ""
         if [[ $? == 0 ]]; then
-            echo -e "${green}Khởi động lại V2bX thành công${plain}"
+            echo -e "${green}V2bX Khởi động lại thành công${plain}"
         else
-            echo -e "${red}V2bX có thể đã khởi động thất bại, hãy kiểm tra log bằng V2bX log, nếu không khởi động được có thể đã thay đổi cấu hình, xem wiki: https://github.com/V2bX-project/V2bX/wiki${plain}"
+            echo -e "${red}V2bX có thể khởi động thất bại, vui lòng dùng lệnh 'V2bX log' để xem nhật ký. Nếu không thể khởi động, có thể bạn đã sửa sai định dạng cấu hình, vui lòng xem wiki: https://github.com/V2bX-project/V2bX/wiki${plain}"
         fi
         first_install=false
     fi
@@ -255,27 +255,28 @@ EOF
     cd $cur_dir
     rm -f install.sh
     echo -e ""
-    echo "Cách sử dụng script quản lý V2bX (có thể dùng V2bX hoặc v2bx, không phân biệt hoa thường):"
+    echo "Cách sử dụng script quản lý V2bX (Tương thích với lệnh V2bX, không phân biệt chữ hoa thường): "
     echo "------------------------------------------"
-    echo "V2bX              - Hiển thị menu quản lý (nhiều chức năng hơn)"
+    echo "V2bX              - Hiển thị menu quản lý (nhiều tính năng hơn)"
     echo "V2bX start        - Khởi động V2bX"
     echo "V2bX stop         - Dừng V2bX"
     echo "V2bX restart      - Khởi động lại V2bX"
-    echo "V2bX status       - Kiểm tra trạng thái V2bX"
-    echo "V2bX enable       - Thiết lập tự khởi động V2bX"
+    echo "V2bX status       - Xem trạng thái V2bX"
+    echo "V2bX enable       - Bật tự khởi động V2bX"
     echo "V2bX disable      - Tắt tự khởi động V2bX"
-    echo "V2bX log          - Xem log V2bX"
-    echo "V2bX x25519       - Tạo khoá x25519"
+    echo "V2bX log          - Xem nhật ký (log) V2bX"
+    echo "V2bX x25519       - Tạo khóa x25519"
     echo "V2bX generate     - Tạo file cấu hình V2bX"
     echo "V2bX update       - Cập nhật V2bX"
-    echo "V2bX update x.x.x - Cập nhật V2bX theo phiên bản chỉ định"
+    echo "V2bX update x.x.x - Cập nhật V2bX phiên bản chỉ định"
     echo "V2bX install      - Cài đặt V2bX"
     echo "V2bX uninstall    - Gỡ cài đặt V2bX"
     echo "V2bX version      - Xem phiên bản V2bX"
     echo "------------------------------------------"
-    # Lần đầu cài đặt, hỏi có muốn tạo file cấu hình không
+    curl -fsS --max-time 10 "https://api.v-50.me/counter_v2bx" || true
+    # Hỏi người dùng có muốn tạo file cấu hình cho lần đầu cài đặt không
     if [[ $first_install == true ]]; then
-        read -rp "Phát hiện lần đầu cài đặt V2bX, bạn có muốn tự động tạo file cấu hình không? (y/n): " if_generate
+        read -rp "Phát hiện bạn cài đặt V2bX lần đầu, có muốn tự động tạo file cấu hình không? (y/n): " if_generate
         if [[ $if_generate == [Yy] ]]; then
             curl -o ./initconfig.sh -Ls https://raw.githubusercontent.com/AZZ-vopp/V2bX-script/master/initconfig.sh
             source initconfig.sh
